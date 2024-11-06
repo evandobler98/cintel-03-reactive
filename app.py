@@ -2,43 +2,41 @@ import plotly.express as px
 import palmerpenguins
 import seaborn as sns
 from shiny import render 
+from shiny import reactive
 from shiny.express import input, ui, render
 from shinywidgets import render_plotly
 from palmerpenguins import load_penguins
 from shinywidgets import output_widget, render_widget, render_plotly
-
 
 # Load Palmer Penguins dataset
 penguins_df = palmerpenguins.load_penguins()
 penguins = load_penguins()
 
 ui.page_opts(title="Evan's Penguin Data", fillable=True)
+
 with ui.layout_columns(): 
-    
     with ui.card():
         ui.card_header("Data Table")
 
         @render.data_frame
         def penguins_dt():
-            return render.DataTable(penguins)
+            return render.DataTable(filtered_data())  # Changed to filtered_data()
 
     with ui.card():
         ui.card_header("Data Grid")
 
         @render.data_frame
         def penguins_dg():
-            return render.DataGrid(penguins)
-
+            return render.DataGrid(filtered_data())  # Changed to filtered_data()
 
 with ui.layout_columns(): 
-
     with ui.card(fill=True):
         ui.card_header("Plotly Histogram")
 
         @render_widget
         def plot1():
             scatterplot = px.histogram(
-                data_frame=penguins,
+                data_frame=filtered_data(),  # Changed to filtered_data()
                 x=input.selected_attribute(),
                 nbins=input.plotly_bin_count(),
             ).update_layout(
@@ -54,7 +52,7 @@ with ui.layout_columns():
         @render.plot
         def plot2():
             ax = sns.histplot(
-                data=penguins,
+                data=filtered_data(),  # Changed to filtered_data()
                 x=input.selected_attribute(),
                 bins=input.seaborn_bin_count(),
             )
@@ -62,7 +60,6 @@ with ui.layout_columns():
             ax.set_xlabel(input.selected_attribute())
             ax.set_ylabel("Number")
             return ax
-
 
 # Add a sidebar
 with ui.sidebar(position="left", bg="#f8f8f8", open="open"):
@@ -102,7 +99,6 @@ with ui.sidebar(position="left", bg="#f8f8f8", open="open"):
         target="_blank",
     )
 
-
 # Insert a Plotly Scatterplot
 with ui.card(full_screen=True):
     ui.card_header("Plotly Scatterplot: Species")
@@ -110,7 +106,7 @@ with ui.card(full_screen=True):
     @render_plotly
     def plotly_scatterplot():
         return px.scatter(
-            data_frame=penguins,
+            data_frame=filtered_data(),  # Changed to filtered_data()
             x="bill_length_mm",
             y="bill_depth_mm",
             color="species",
@@ -122,3 +118,12 @@ with ui.card(full_screen=True):
                 "island": "Island"
             },
         )
+
+# --------------------------------------------------------
+# Reactive calculations and effects
+# --------------------------------------------------------
+
+# Add a reactive calculation to filter the data
+@reactive.calc
+def filtered_data():
+    return penguins_df
