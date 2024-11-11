@@ -126,4 +126,12 @@ with ui.card(full_screen=True):
 # Add a reactive calculation to filter the data
 @reactive.calc
 def filtered_data():
-    return penguins_df
+    
+    # Get the selected species from the checkbox input
+    selected_species = input.selected_species_list()
+    
+    # Filter the dataset based on selected species
+    filtered_df = penguins_df[penguins_df['species'].isin(selected_species)]
+    
+    return filtered_df
+
